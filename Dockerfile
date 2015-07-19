@@ -4,7 +4,7 @@
 #
 #
 FROM ubuntu:12.04
-MAINTAINER Weaved Inc., https://github.com/weaved/docker-sshd-weaved, http://ww.weaved.com
+MAINTAINER Weaved Inc., https://github.com/weaved/docker-sshd-weaved, http://www.weaved.com
 #
 # Install and configure openssh and install wget
 RUN apt-get update && apt-get install -y openssh-server
@@ -21,7 +21,7 @@ ENV NOTVISIBLE "in users profile"
 RUN echo "export VISIBLE=now" >> /etc/profile
 
 #
-# install Weaved from github
+# install Weaved from github, using --no-check-certificate for now should be changed
 #
 #
 RUN wget --no-check-certificate https://github.com/weaved/misc_bins_and_scripts/raw/master/connectd/weavedConnectd.ubuntu12.04-linux64 
