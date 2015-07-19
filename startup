@@ -72,7 +72,9 @@ sleep 5
 # check for pid file
 if [ ! -f ${PID_FILE} ] ;then
     echo "Weaved did not startup correctly"
-    exec /bin/bash
+    exit 1
+    # if you run in interactive mode and you fail, just goto shell
+    #exec /bin/bash
 fi
 
 echo "Ok Configured, lets go!"
