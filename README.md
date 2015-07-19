@@ -20,35 +20,35 @@ $ sudo docker build -t weaved/docker-sshd-weaved .
 ```
 It's better if you change the tag using your Docker username.
 
-To spawn a new instance and see the IP:
+To spawn a new instance you need a a registration token from Weaved.
 
-```bash
-$ CONTAINER_ID=$(sudo docker run -d docker-ssh)
-$ sudo docker inspect $CONTAINER_ID | grep IPAddress | awk '{ print $2 }' | tr -d ',"'
+It should look like this:  fb8f43af59af6140ad22bc44dfd85bea
+
+Each seperate instance of the docker image needs this to be sepratly accessable.  You should
+of registered a a name associated with your token.
+
+Spin up your image into a new container (replace the token with your token):
+
 ```
-You will have a result like this:
+docker run -e WEAVED_TOKEN="fb8f43af59af6140ad22bc44dfd85bea" -d -P --name weaved1 weaved/docker-sshd-weaved 
 ```
-172.17.0.74
+Your device associated with the Weaved Registration token should come active and be accessable by SSH.
+
+Things you can do to manage the process:
+
 ```
-And, finally, you should connect to the container with 
-```bash
-$ ssh root@172.17.0.74
+docker logs weaved1
+docker stop weaved1
+dokcer start weaved1
 ```
 
 ## What after?
 
-You can create new images starting your Dockerfile with something like
-```
-FROM sullof/sshd
-```
-and modify appropriately the ```supervisord.conf``` file without overwriting the previous one. For example, in your derivated images, you 
-could use the following approach appending a new file:
-```bash
-$ ADD ./supervisord.conf.append /etc/supervisord.conf.append
-$ RUN cat /etc/supervisord.conf.append >> /etc/supervisord.conf &&\
-      rm /etc/supervisord.conf.append
-```
-There is an example at [docker-wpngx](https://github.com/sullof/docker-wpngx).
+Using the same image you can starup multiple images with there own access name, just startup with a new token.
+
+SSH is just an example service that can be exposed inside docker via Weaved.
+
+More to come.
 
 ## License 
 
