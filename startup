@@ -1,0 +1,82 @@
+#!/bin/bash -x
+#
+#  Weaved docker startup script 
+#  
+#  Weaved, Inc. Copyright 2015. All rights reserved.
+#
+#  mike@weaved 7/18/2015
+#
+
+#### Settings #####
+INSTALL_DIR=/root
+BIN="${INSTALL_DIR}/weavedConnectd"
+WEAVED_PROVISIONING="${INSTALL_DIR}/weavedConfig"
+PID_FILE="${INSTALL_DIR}/weaved.pid"
+LOG_FILE="/dev/null"
+DEBUG=1
+
+#
+apiMethod="https://"
+apiVersion="/v12"
+apiServer="api.weaved.com"
+getEnablement="${apiMethod}${apiServer}${apiVersion}/portal/members/downloadHandler.php?token="
+
+
+
+# Get Reg Token from Enviornment if it exists
+RegToken=$WEAVED_TOKEN
+
+if [ $DEBUG -eq 1 ]; then
+    # debug output
+    echo "Testing Enviornment"
+    echo "$WEAVED_TOKEN"
+fi
+
+
+# check if weaved is provisioned
+if [ ! -f $WEAVED_PROVISIONING ];then
+    #
+    # no provisioning file, do we have a provisioning token?
+    # sanity check first
+    tlen=${#WEAVED_TOKEN}
+    if [ $tlen -eq 32 ]; then
+        # there is a token of the correct size, lets try to use it, fix this to use curl and ssl checks
+        wget --no-check-certificate -O $WEAVED_PROVISIONING ${getEnablement}$WEAVED_TOKEN
+        #
+        # check for error
+        if [ ! -s $WEAVED_PROVISIONING ]; then
+            # File size is zero
+            rm $WEAVED_PROVISIONING
+            #
+            # provisiong token has expired
+            echo "Provisoning token has expired, invalid or not retrievable. ($WEAVED_TOKEN)"
+            echo "exiting with error"
+            exit 1
+        fi
+
+    else
+        echo "Failed to startup, no provisioning file and not provisoning token."
+        echo "exiting with error"
+        exit 1
+    fi
+fi
+
+cat $WEAVED_PROVISIONING
+
+# We should have a provisioning file now, lets start it up
+${BIN} -f ${WEAVED_PROVISIONING} -d ${PID_FILE} > ${LOG_FILE} 2>&1
+
+#Give it time to startup
+sleep 5
+
+# check for pid file
+if [ ! -f ${PID_FILE} ] ;then
+    echo "Weaved did not startup correctly"
+    exec /bin/bash
+fi
+
+echo "Ok Configured, lets go!"
+#switch this process to sshd
+exec /usr/sbin/sshd -D
+
+
